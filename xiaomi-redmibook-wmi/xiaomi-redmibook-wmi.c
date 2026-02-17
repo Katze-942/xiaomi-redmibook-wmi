@@ -236,6 +236,8 @@ static int xiaomi_redmibook_wmi_probe(struct wmi_device *wdev, const void *conte
 		return -ENOMEM;
 	}
 
+	ec_led_set(data, false);
+
 	data->input_dev = devm_input_allocate_device(&wdev->dev);
 	if (!data->input_dev)
 		return -ENOMEM;

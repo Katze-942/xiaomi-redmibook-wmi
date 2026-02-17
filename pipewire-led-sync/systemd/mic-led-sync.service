@@ -1,0 +1,39 @@
+[Unit]
+Description=Sync micmute LED with PipeWire default source
+After=pipewire-pulse.socket
+Wants=pipewire-pulse.socket
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/mic-led-sync
+Restart=on-failure
+RestartSec=3
+
+# Privileges
+NoNewPrivileges=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+
+# Filesystem
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=/sys/class/leds/platform::micmute
+
+# Kernel
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+
+# Isolation
+LockPersonality=true
+RestrictRealtime=true
+RestrictNamespaces=true
+
+[Install]
+WantedBy=default.target

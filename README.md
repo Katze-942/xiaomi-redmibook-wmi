@@ -48,6 +48,37 @@ Tested on:
 
 A: The LED is driven by the `audio-micmute` ALSA trigger (`snd_ctl_led`), which monitors specific ALSA `Capture Switch` controls. When you switch the default source in PipeWire to a different device, `snd_ctl_led` may still be tracking the `Capture Switch` of the previous device, so it doesn't see the mute state change.
 
+See [Workaround: pipewire-led-sync](#workaround-pipewire-led-sync) below.
+
+## Workaround: pipewire-led-sync
+
+A userspace daemon that disables the kernel `audio-micmute` trigger and takes full control of the LED, tracking mute state via PipeWire (`pactl subscribe`).
+
+This correctly handles:
+- Mute/unmute of any default source (built-in mic, USB mic, etc.)
+- Switching the default source in the DE
+- PipeWire restarts
+- Device hotplug
+
+### Installation
+
+Requires `pactl` (provided by `pipewire-pulse` or `pulseaudio-utils`).
+
+```bash
+run0 ./pipewire-led-sync/install.sh
+systemctl --user daemon-reload
+systemctl --user enable --now mic-led-sync.service
+```
+
+### Removal
+
+```bash
+systemctl --user disable --now mic-led-sync.service
+run0 ./pipewire-led-sync/uninstall.sh
+```
+
+The `audio-micmute` kernel trigger is restored automatically when the service stops.
+
 ---
 
 # xiaomi-redmibook-wmi
@@ -99,3 +130,34 @@ KDE Plasma и GNOME автоматически обнаруживают `charge_
 **Вопрос: я переключаюсь на другой микрофон в DE и мьючу его, но LED не загорается. Почему?**
 
 Ответ: LED управляется ALSA-триггером `audio-micmute` (модуль `snd_ctl_led`), который отслеживает конкретные ALSA-контролы `Capture Switch`. При переключении default source в PipeWire на другое устройство `snd_ctl_led` может продолжать следить за `Capture Switch` предыдущего устройства и не видит изменение состояния мьюта.
+
+См. [Обходной путь: pipewire-led-sync](#обходной-путь-pipewire-led-sync) ниже.
+
+## Обходной путь: pipewire-led-sync
+
+Userspace-демон, который отключает триггер ядра `audio-micmute` и берёт полный контроль над LED, отслеживая состояние мьюта через PipeWire (`pactl subscribe`).
+
+Корректно обрабатывает:
+- Мьют/анмьют любого default source (встроенный микрофон, USB-микрофон и т.д.)
+- Переключение default source в DE
+- Рестарты PipeWire
+- Подключение/отключение устройств (hotplug)
+
+### Установка
+
+Требуется `pactl` (предоставляется пакетом `pipewire-pulse` или `pulseaudio-utils`).
+
+```bash
+run0 ./pipewire-led-sync/install.sh
+systemctl --user daemon-reload
+systemctl --user enable --now mic-led-sync.service
+```
+
+### Удаление
+
+```bash
+systemctl --user disable --now mic-led-sync.service
+run0 ./pipewire-led-sync/uninstall.sh
+```
+
+Триггер ядра `audio-micmute` восстанавливается автоматически при остановке сервиса.

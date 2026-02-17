@@ -38,6 +38,10 @@ echo 80 | run0 tee /sys/class/power_supply/BAT0/charge_control_end_threshold
 
 KDE Plasma and GNOME automatically detect `charge_control_end_threshold` and expose it in their power settings UI.
 
+### Persisting across reboots
+
+The charge limit is automatically restored on reboot — the driver reads the last value from EC memory on startup. No extra setup needed.
+
 Tested on:
 - Xiaomi Redmi Book Pro 16 2025 (TM2409)
 - ALT Regular KDE (kernel 6.19)
@@ -118,6 +122,10 @@ echo 80 | run0 tee /sys/class/power_supply/BAT0/charge_control_end_threshold
 ```
 
 KDE Plasma и GNOME автоматически обнаруживают `charge_control_end_threshold` и отображают его в настройках питания.
+
+### Сохранение порога после перезагрузки
+
+Ограничение заряда автоматически восстанавливается при перезагрузке — драйвер считывает последнее значение из памяти EC при запуске. Дополнительная настройка не требуется.
 
 ## Совместимость
 

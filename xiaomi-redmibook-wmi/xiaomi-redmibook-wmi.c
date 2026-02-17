@@ -28,6 +28,7 @@
 #include <linux/io.h>
 #include <linux/leds.h>
 #include <linux/module.h>
+#include <linux/power_supply.h>
 #include <linux/mutex.h>
 #include <linux/wmi.h>
 
@@ -140,6 +141,9 @@ static ssize_t charge_control_end_threshold_store(struct device *dev,
 	mutex_lock(&charge_lock);
 	ret = xiaomi_redmibook_ec_set_charge_threshold(val);
 	mutex_unlock(&charge_lock);
+
+	if (!ret)
+		power_supply_changed(to_power_supply(dev));
 
 	return ret ? ret : count;
 }
@@ -270,7 +274,20 @@ static int xiaomi_redmibook_wmi_probe(struct wmi_device *wdev, const void *conte
 
 	/* Battery charge limit — only if firmware advertises METHOD GUID */
 	if (wmi_has_guid(REDMIBOOK_WMI_METHOD_GUID)) {
+		u8 hbda;
+
 		xiaomi_redmibook_ec_base = data->ec_base;
+
+		/* Restore charge limit preserved in EC across reboot —
+		 * EC retains HBDA but clears the enable bit in LONL */
+		hbda = ioread8(data->ec_base + EC_HBDA_OFFSET);
+		if (hbda > 0 && hbda < 100) {
+			mutex_lock(&charge_lock);
+			xiaomi_redmibook_ec_set_charge_threshold(hbda);
+			mutex_unlock(&charge_lock);
+			dev_info(&wdev->dev,
+				 "restored charge limit to %u%%\n", hbda);
+		}
 
 		ret = devm_battery_hook_register(&wdev->dev,
 						 &xiaomi_redmibook_battery_hook);
